@@ -40,10 +40,18 @@ double Point::distance(Point p){
  *        numPoints: number of points inside the cluster                 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Clusters::Clusters() : points({}), centroid({}), numPoints({}){}
+Clusters::Clusters() : points({}), centroid({}), numPoints({}), min_max({}){}
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *  1) Inialize points from raw data                                     *
+ *  2) Establish initial centroids, clusters                             *
+ *  3) Load points and sort into established clusters                    *
+ *  4) Repeatedly re-sort clusters/points, recalculates centroid to      *
+ *        establish accurate centroid point.                             *
+ *  5) Calculate within sum squared                                      *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void Clusters::test_init(std::vector<double> data, int num_clust){
+void Clusters::init(std::vector<double> data, int num_clust){
     load_points(data);
     sort(data.begin(), data.end());
     int range = data[data.size()-1] - data[0];
@@ -54,7 +62,7 @@ void Clusters::test_init(std::vector<double> data, int num_clust){
     for (int i = 0; i < 20; i ++){
          update_centroids();
     }
-   
+
     calc_wsss();
 }
 
@@ -64,10 +72,11 @@ std::vector<Point> Clusters::init_centroids(int num_clust, int size, std::vector
     unsigned long range = data.size() / num_clust;
     
     for (unsigned long i = range; i <= data.size()+1;){
-       
         Point p(data[i-1]);
         p.cluster = (int)return_cent.size();
         return_cent.push_back(p);
+        min_max.push_back(std::vector<Point*>{&p, &p});
+        
         i += range;
     }
     
@@ -77,7 +86,7 @@ std::vector<Point> Clusters::init_centroids(int num_clust, int size, std::vector
 
 void Clusters::load_points(std::vector<double> data){
     for(auto i : data){
-        Point p = Point(i);
+        Point p(i);
         points.push_back(p);
     }
 }
@@ -109,48 +118,65 @@ void Clusters::calc_wsss(){
 
 
 void Clusters::init_data_points(){
-    for (std::vector<Point>::iterator p = begin(points);
-         p != end(points); p++){
+    for (std::vector<Point>::iterator p = begin(points); p != end(points); p++){
         
+        /* * * * * * * * * * * * * * * * * * * * * *
+         *  Calculates new distance from centroid  *
+         * * * * * * * * * * * * * * * * * * * * * */
         std::vector<Point>::iterator c = begin(centroid);
         c = check_distance(c, p);
         p->cluster = c->cluster;
         p->minDist = c->distance(*p);
+        
+        /* * * * * * * * * * * * * * * * * * * * *
+         *  Updates clusters min, max distance   *
+         *  (min_max[x][0] is max)               *
+         *  (min_max[x][1] is min)               *
+         * * * * * * * * * * * * * * * * * * * * */
+        Point& pnt = *p;
+        
+        if (p->minDist > min_max[p->cluster][0]->minDist)
+            min_max[p->cluster][0] = &pnt;
+        if (p->minDist < min_max[p->cluster][1]->minDist)
+            min_max[p->cluster][1] = &pnt;
     }
 }
 
 
 
 void Clusters::update_centroids(){
-    std::vector<int> nPoints;
-    std::vector<double> ysum, dist, xsum;
-    init_vectors(nPoints);
-    init_vectors(ysum);
-    init_vectors(xsum);
+    std::vector<int> nPoints {std::vector<int>((int)centroid.size(), 0)};
+    std::vector<double> ysum {std::vector<double>(centroid.size(), 0)};
+    //ysum = dist = xsum;
     
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * 1) Iterates all points in vector                        *
+     * 2) Updates point count in nPoints at points cluster ID  *
+     * 3) Updates the total sum of points at clusterID         *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     for(std::vector<Point>::iterator it = begin(points); it != end(points); it++){
         int clusterId = it->cluster;
         nPoints[clusterId] += 1;
         ysum[clusterId] += it->price;
     }
     
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *  1) Iterates centroid vector                            *
+     *  2) Gets the clusterID at current cluster               *
+     *  3) calcualtes the current locatoin based on the sum of *
+     *     points/number of points                             *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     for(std::vector<Point>::iterator cent = begin(centroid); cent != end(centroid); cent++){
         int clusterId = cent->cluster;
         cent->price = ysum[clusterId] / nPoints[clusterId];
 
     }
     
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *  Calls to recalculate point's distance from new centroid  *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     init_data_points();
 }
-
-
-template <class T>
-void Clusters::init_vectors(std::vector<T> &vec){
-    for(int i = 0; i < centroid.size(); i++)
-        vec.push_back(0);
-}
-
-
 
 void Clusters::print_centroids(){
     for(auto &i : centroid){
@@ -164,9 +190,6 @@ void Clusters::print(){
     }
 }
 
-
-
-//Move to KMeans class, fix using json STL library (easy fix)
 std::string Clusters::print_plots(){
     std::vector<std::vector<std::vector<double>>> ret_points;
     json str;
@@ -184,6 +207,11 @@ std::string Clusters::print_plots(){
         }
     }
     
+    for (auto i : min_max){
+        json tmp = {i[0]->price, i[1]->price};
+        str["min_max"].push_back(tmp);
+    }
     
+
     return str.dump();
 }

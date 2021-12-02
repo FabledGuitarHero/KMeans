@@ -30,6 +30,7 @@ class Clusters {
 public:
     std::vector<Point> points;
     std::vector<Point> centroid;
+    std::vector<std::vector<Point*>> min_max;
     double wsss;
     
     
@@ -37,7 +38,7 @@ public:
     Clusters(std::vector<double> data);
     Clusters(std::vector<std::vector<double>> data);
     
-    void test_init(std::vector<double> data, int num_clust);
+    void init(std::vector<double> data, int num_clust);
     
     
     void print_centroids();
@@ -56,8 +57,6 @@ private:
     void update_centroids();
     void calc_wsss();
     std::vector<Point>::iterator check_distance(std::vector<Point>::iterator cluster_p,  std::vector<Point>::iterator point_p);
-    template <class T>
-    void init_vectors(std::vector<T> &vec);
 };
 
 #endif /* points_hpp */

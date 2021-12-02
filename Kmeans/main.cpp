@@ -47,11 +47,11 @@ std::string open_file(std::string file_name){
 
 
 int main(int argc, const char * argv[]) {
-    std::string str = open_file("test_data.txt");
+    std::string str = open_file("FB.txt");
 
     nlohmann::json jsn = nlohmann::json::parse(str);
-    KMeans my_test(jsn);
-    KMeansSingle rsi_plots(jsn, "rsi", 3);
+    KMeansMulti my_test(jsn);
+    KMeansSingle rsi_plots(jsn, "rsi_data/rsi", 3);
     //KMeansSingle my_test(jsn, "rsi");
 
     

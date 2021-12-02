@@ -15,21 +15,23 @@
 
 class KMeans{
 public:
-    Clusters high, low;
-    
     KMeans();
-    KMeans(nlohmann::json raw);
-    KMeans(std::vector<std::vector<double>> raw);
-    KMeans(std::vector<std::vector<std::vector<double>>> raw);
-    
-    /*Needs to be incuded: */
-    nlohmann::json to_json();
-    std::string to_string();
-
+    std::string print_plots();
     
 protected:
-    std::vector<Clusters> load_clusters(std::vector<std::vector<double>> &data, int h_l_opt);
     unsigned long find_optimum_clusters(std::vector<Clusters> &clusters);
+    std::vector<Clusters> load_clusters(std::vector<std::vector<double>> &data, int h_l_opt);
+};
+
+class KMeansMulti : public KMeans{
+public:
+    Clusters high, low;
+    
+    KMeansMulti(nlohmann::json raw);
+    KMeansMulti(std::vector<std::vector<double>> raw);
+    KMeansMulti(std::vector<std::vector<std::vector<double>>> raw);
+    
+protected:
     std::vector<std::vector<double>> to_vector(nlohmann::json &jsn);
 };
 
@@ -44,7 +46,7 @@ public:
     
 protected:
     std::vector<double> to_vector(nlohmann::json &jsn, std::string index);
-    Clusters load_clusters(std::vector<double> &data, int clust);
+    //Clusters load_clusters(std::vector<double> &data, int clust);
 };
 
 
