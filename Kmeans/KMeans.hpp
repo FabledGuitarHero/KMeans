@@ -46,7 +46,6 @@ public:
     
 protected:
     std::vector<double> to_vector(nlohmann::json &jsn, std::string index);
-    //Clusters load_clusters(std::vector<double> &data, int clust);
 };
 
 

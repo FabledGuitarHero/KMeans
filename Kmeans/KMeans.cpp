@@ -147,15 +147,6 @@ KMeansSingle::KMeansSingle(nlohmann::json jsn, std::string index, int num_clust)
     clust.init(data, num_clust);
 }
 
-/*Clusters KMeansSingle::load_clusters(std::vector<double> &data, int clust){
-    
-    Clusters tmp;
-    tmp.init(data, clust);
-    
-    return tmp;
-}*/
-
-
 std::vector<double> KMeansSingle::to_vector(nlohmann::json &jsn, std::string path){
     if(jsn.is_string())
         jsn = nlohmann::json::parse((std::string)jsn);
