@@ -190,6 +190,17 @@ void Clusters::print(){
     }
 }
 
+std::string Clusters::print_high_low(){
+    json str;
+    
+    for (auto i : min_max){
+        json tmp = {i[0]->price, i[1]->price};
+        str["min_max"].push_back(tmp);
+    }
+    
+    return str.dump();
+}
+
 std::string Clusters::print_plots(){
     std::vector<std::vector<std::vector<double>>> ret_points;
     json str;
@@ -205,11 +216,6 @@ std::string Clusters::print_plots(){
             json tmp = {i.price};
             str["centroid"].push_back(tmp);
         }
-    }
-    
-    for (auto i : min_max){
-        json tmp = {i[0]->price, i[1]->price};
-        str["min_max"].push_back(tmp);
     }
     
 

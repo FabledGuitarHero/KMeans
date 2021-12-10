@@ -43,6 +43,7 @@ public:
     
     void print_centroids();
     void print();
+    std::string print_high_low();
     std::string print_plots();
     
 private:

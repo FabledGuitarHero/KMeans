@@ -9,17 +9,75 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <map>
 #include "json.hpp"
 #include "points.hpp"
 #include "KMeans.hpp"
 
 using namespace std;
 
+
+
+std::map<std::string, std::vector<double>> parse_to_vector(nlohmann::json &jsn, std::string path){
+    //Parses json string if not already decoded
+    if(jsn.is_string())
+        jsn = nlohmann::json::parse((std::string)jsn);
+    
+    std::map<std::string, std::vector<double>> ret {};
+    
+    
+    auto f = path.find('/');
+    if(f != std::string::npos){
+        std::string new_path = path.substr(f + 1,path.length());
+        std::string cur_path = path.substr(0, f);
+        
+        for (auto i : jsn){
+            std::map<std::string, std::vector<double>> tmp = parse_to_vector(i.at(cur_path), new_path);
+            
+            if (ret.find(tmp.begin()->first) == ret.end())
+                ret.insert({tmp.begin()->first, tmp.begin()->second});
+            else{
+                //Really sloppy way of appending TmpMap(K,V)->V into RetMap(K,V)->V.
+                std::string key = tmp.begin()->first;
+                ret.at(key).insert(ret.at(key).end(), tmp.at(key).begin(), tmp.at(key).end());
+            }
+        }
+    }
+    else{
+        //subj obejct from jsn array, from code above.
+        if(jsn.is_object())
+            return std::map<std::string, std::vector<double>> {{path, {jsn[path]}}};
+        
+        //Is an object and needs to be looped.
+        //If key doesn't exist, create new array.
+        //  Else, add to array.
+        for (auto i : jsn){
+            if (ret.find(path) == ret.end())
+                ret.insert({path, {i[path]}});
+            else
+                ret.at(path).push_back(i[path]);
+        }
+    }
+
+    
+    return ret;
+}
+
+std::map<std::string, std::vector<double>> parse_to_vector(nlohmann::json &jsn, std::vector<std::string> path){
+    std::map<std::string, std::vector<double>> ret {};
+    
+    for (auto i : path){
+        std::map<std::string, std::vector<double>> tmp = parse_to_vector(jsn, i);
+        ret.insert(tmp.begin(), tmp.end());
+    }
+    
+    return ret;
+}
+
 void print_file(std::string result){
     std::ofstream file("/Volumes/web/KMean/output.txt");
     //std::ofstream file("output.txt");
     if(file.is_open()){
-        cout << "here" << endl;
         file << result;
     }
     else{
@@ -50,18 +108,53 @@ int main(int argc, const char * argv[]) {
     std::string str = open_file("FB.txt");
 
     nlohmann::json jsn = nlohmann::json::parse(str);
-    KMeansMulti my_test(jsn);
-    KMeansSingle rsi_plots(jsn, "rsi_data/rsi", 3);
+    
+    try{
+        std::map<std::string, std::vector<double>> tmp = parse_to_vector(jsn["candles"],
+                                                                         std::vector<std::string> {"high", "low", "rsi_data/rsi"});
+            KMeansMulti test(tmp);
+            std::map<std::string, std::vector<std::vector<std::vector<double>>>> answer = test.fetch_results();
+        std::cout << test.print() << std::endl;
+            
+        nlohmann::json proc;
+        for (auto i : answer){
+            proc[i.first]["points"] = i.second[0];
+            proc[i.first]["centroid"] = i.second[1];
+            proc[i.first]["min_max"] = i.second[2];
+        }
+    
+        //std:cout << proc.dump(4) << std::endl;
+        //print_file(proc.dump());
+        
+        
+    }
+    catch(std::exception &e){
+        std::cout << e.what() << std::endl;
+    }
+    //KMeansMulti my_test(jsn);
+    //KMeansSingle rsi_plots(jsn, "rsi_data/rsi");
     //KMeansSingle my_test(jsn, "rsi");
 
     
+    //std::string test = my_test.print_plots();
+    //std::cout << test << std::endl;
+    
+    
+    
+    
     //THIS PRINTS PLOTS TO FILE
-    nlohmann::json json;
+    /*nlohmann::json json;
     json.push_back(my_test.high.print_plots());
     json.push_back(my_test.low.print_plots());
-    json.push_back(rsi_plots.clust.print_plots());
+    json.push_back(rsi_plots.print_plots());
     std::string result = my_test.high.print_plots();
     
+    nlohmann::json json2;
+    json2.push_back(my_test.print_plots());
+    //json2.push_back(rsi_plots.print_plots());
     
-    print_file(json.dump());
+    //std::cout << json.dump(4) << std::endl;
+    std::cout << " " << std::endl;
+    std::cout << json2.dump(4) << std::endl;
+    print_file(json2.dump());*/
 }
