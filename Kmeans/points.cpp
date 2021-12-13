@@ -41,6 +41,7 @@ double Point::distance(Point p){
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Clusters::Clusters() : points({}), centroid({}), numPoints({}), min_max({}){}
+Clusters::~Clusters(){}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *  1) Inialize points from raw data                                     *
@@ -54,9 +55,8 @@ Clusters::Clusters() : points({}), centroid({}), numPoints({}), min_max({}){}
 void Clusters::init(std::vector<double> data, int num_clust){
     load_points(data);
     sort(data.begin(), data.end());
-    int range = data[data.size()-1] - data[0];
     
-    centroid = init_centroids(num_clust, range, data);
+    centroid = init_centroids(num_clust, data);
     init_data_points();
     
     for (int i = 0; i < 20; i ++){
@@ -67,13 +67,14 @@ void Clusters::init(std::vector<double> data, int num_clust){
 }
 
 
-std::vector<Point> Clusters::init_centroids(int num_clust, int size, std::vector<double> &data){
+std::vector<Point> Clusters::init_centroids(int num_clust, std::vector<double> &data){
     std::vector<Point> return_cent;
     unsigned long range = data.size() / num_clust;
     
     for (unsigned long i = range; i <= data.size()+1;){
         Point p(data[i-1]);
         p.cluster = (int)return_cent.size();
+        p.minDist = -1.0;
         return_cent.push_back(p);
         min_max.push_back(std::vector<Point*>{&p, &p});
         

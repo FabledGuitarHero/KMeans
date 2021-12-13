@@ -112,7 +112,7 @@ int main(int argc, const char * argv[]) {
     try{
         std::map<std::string, std::vector<double>> tmp = parse_to_vector(jsn["candles"],
                                                                          std::vector<std::string> {"high", "low", "rsi_data/rsi"});
-            KMeansMulti test(tmp);
+            KMeans test(tmp);
             std::map<std::string, std::vector<std::vector<std::vector<double>>>> answer = test.fetch_results();
         std::cout << test.print() << std::endl;
             

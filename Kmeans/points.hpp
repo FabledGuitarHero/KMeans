@@ -35,8 +35,7 @@ public:
     
     
     Clusters();
-    Clusters(std::vector<double> data);
-    Clusters(std::vector<std::vector<double>> data);
+    ~Clusters();
     
     void init(std::vector<double> data, int num_clust);
     
@@ -52,7 +51,7 @@ private:
     
     void find_cluster_size(int range, std::vector<double> data, double dist);
     
-    std::vector<Point> init_centroids(int num_clust, int size, std::vector<double> &data);
+    std::vector<Point> init_centroids(int num_clust, std::vector<double> &data);
     void load_points(std::vector<double> data);
     void init_data_points();
     void update_centroids();
