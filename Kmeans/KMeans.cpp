@@ -8,6 +8,9 @@
 
 #include "KMeans.hpp"
 
+KMeansResult::KMeansResult() : data{} {
+}
+
 KMeans::KMeans() : clust{}, min_max{}{}
 
 KMeans::KMeans(std::map<std::string, std::vector<double>> raw) : clust{}, min_max{}{
@@ -90,8 +93,9 @@ std::string KMeans::print(){
     
     for (auto& i : this->clust){
         ss << "Data Source: " << i.first << std::endl;
-        ss << print_clusters(i.second);
-        ss << this->print_min_max(i.second);
+        ss << print_clusters(i.second) << "\n";
+        ss << print_centroids(i.second) << "\n";
+        ss << this->print_min_max(i.second) << "\n\n";
     }
     
     return ss.str();
@@ -108,6 +112,29 @@ std::string KMeans::print_clusters(std::shared_ptr<Clusters> clust){
         std::stringstream tmp;
         
         tmp << "[" << i.price << ", " << i.cluster << ", " << i.minDist << "]";
+        tmp << std::setw(str_len - (int)tmp.str().length()) << " ";
+        
+        row_count++;
+        if (row_count % 5 == 0)
+            tmp << "\n";
+        
+        ss << tmp.str();
+    }
+    
+    return ss.str();
+}
+
+std::string KMeans::print_centroids(std::shared_ptr<Clusters> clust){
+    std::stringstream ss;
+    int str_len = 25;
+    
+    ss << "[Cluster/Data]" << std::endl;
+    
+    int row_count = 0;
+    for (auto i : clust->centroid){
+        std::stringstream tmp;
+        
+        tmp << "[" << i.price << ", " << i.cluster  <<"]";
         tmp << std::setw(str_len - (int)tmp.str().length()) << " ";
         
         row_count++;

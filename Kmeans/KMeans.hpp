@@ -15,6 +15,13 @@
 #include <memory>
 #include "points.hpp"
 
+struct KMeansResult{
+public:
+    std::map<std::string, std::shared_ptr<Clusters>> data;
+    
+    KMeansResult();
+};
+
 class KMeans{
 public:
     std::map<std::string, std::shared_ptr<Clusters>> clust;
@@ -35,6 +42,7 @@ protected:
     std::vector<std::vector<double>>fetch_min_max(std::vector<std::vector<Point*>> &data);
     
     std::string print_clusters(std::shared_ptr<Clusters> clust);
+    std::string print_centroids(std::shared_ptr<Clusters> clust);
     std::string print_min_max(std::vector<std::vector<Point*>> &min_max);
     std::string print_min_max(std::shared_ptr<Clusters> clust);
 };

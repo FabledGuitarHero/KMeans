@@ -131,30 +131,4 @@ int main(int argc, const char * argv[]) {
     catch(std::exception &e){
         std::cout << e.what() << std::endl;
     }
-    //KMeansMulti my_test(jsn);
-    //KMeansSingle rsi_plots(jsn, "rsi_data/rsi");
-    //KMeansSingle my_test(jsn, "rsi");
-
-    
-    //std::string test = my_test.print_plots();
-    //std::cout << test << std::endl;
-    
-    
-    
-    
-    //THIS PRINTS PLOTS TO FILE
-    /*nlohmann::json json;
-    json.push_back(my_test.high.print_plots());
-    json.push_back(my_test.low.print_plots());
-    json.push_back(rsi_plots.print_plots());
-    std::string result = my_test.high.print_plots();
-    
-    nlohmann::json json2;
-    json2.push_back(my_test.print_plots());
-    //json2.push_back(rsi_plots.print_plots());
-    
-    //std::cout << json.dump(4) << std::endl;
-    std::cout << " " << std::endl;
-    std::cout << json2.dump(4) << std::endl;
-    print_file(json2.dump());*/
 }
