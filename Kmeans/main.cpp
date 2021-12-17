@@ -63,20 +63,33 @@ std::map<std::string, std::vector<double>> parse_to_vector(nlohmann::json &jsn, 
     return ret;
 }
 
-std::map<std::string, std::vector<double>> parse_to_vector(nlohmann::json &jsn, std::vector<std::string> path){
-    std::map<std::string, std::vector<double>> ret {};
+std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> parse_to_vector(
+                                                                            nlohmann::json &jsn,
+                                                                            std::vector<std::string> y_path,
+                                                                            std::vector<std::string> x_path
+                                                                            ){
+    if (x_path.size() > 1)
+        throw std::runtime_error(std::string("X-Axis can only have one dataset.  Aborting."));
     
-    for (auto i : path){
+    
+    std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> ret {};
+    std::map<std::string, std::vector<double>> x_data = parse_to_vector(jsn, x_path[0]);
+    
+    
+    for (auto i : y_path){
         std::map<std::string, std::vector<double>> tmp = parse_to_vector(jsn, i);
-        ret.insert(tmp.begin(), tmp.end());
+        
+        // Ret<K,<K1,V1>> K = Key, V = Value
+        ret.insert(std::make_pair(tmp.begin()->first,
+                                  std::make_pair(tmp.begin()->second, x_data.begin()->second)));
     }
     
     return ret;
 }
 
 void print_file(std::string result){
-    std::ofstream file("/Volumes/web/KMean/output.txt");
-    //std::ofstream file("output.txt");
+    //std::ofstream file("/Volumes/web/KMean/output.txt");
+    std::ofstream file("output.txt");
     if(file.is_open()){
         file << result;
     }
@@ -110,10 +123,13 @@ int main(int argc, const char * argv[]) {
     nlohmann::json jsn = nlohmann::json::parse(str);
     
     try{
-        std::map<std::string, std::vector<double>> tmp = parse_to_vector(jsn["candles"],
-                                                                         std::vector<std::string> {"high", "low", "rsi_data/rsi"});
-            KMeans test(tmp);
-            std::map<std::string, std::vector<std::vector<std::vector<double>>>> answer = test.fetch_results();
+    
+        KMeans_data tmp (parse_to_vector(jsn["candles"],
+                          std::vector<std::string> {"high", "low", "rsi_data/rsi"},
+                          std::vector<std::string> {"datetime"}));
+    
+        KMeans test(tmp);
+        std::map<std::string, std::vector<std::vector<std::vector<double>>>> answer = test.fetch_results();
         std::cout << test.print() << std::endl;
             
         nlohmann::json proc;
@@ -122,13 +138,11 @@ int main(int argc, const char * argv[]) {
             proc[i.first]["centroid"] = i.second[1];
             proc[i.first]["min_max"] = i.second[2];
         }
-    
-        //std:cout << proc.dump(4) << std::endl;
-        //print_file(proc.dump());
+        print_file(proc.dump());
         
         
     }
     catch(std::exception &e){
         std::cout << e.what() << std::endl;
-    }
+   }
 }
