@@ -18,12 +18,15 @@
 
 class Point {
 public:
-    double price, minDist;
+    double y_data, x_data, minDist;
     int cluster;
     
     Point();
-    Point(double price);
-    double distance(Point p);
+    Point(double y_data);
+    Point(double y_data, double x_data);
+    ~Point();
+    
+    double y_distance(Point p);
 };
 
 class Clusters {
@@ -36,27 +39,24 @@ public:
     
     Clusters();
     ~Clusters();
-    
-    void init(std::vector<double> data, int num_clust);
+
+    void init(const std::vector<double> y_data, const std::vector<double> x_data, int num_clust);
     
     
     void print_centroids();
     void print();
-    std::string print_high_low();
-    std::string print_plots();
     
 private:
-    std::vector<Point> numPoints;
-    
-    
     void find_cluster_size(int range, std::vector<double> data, double dist);
     
-    std::vector<Point> init_centroids(int num_clust, std::vector<double> &data);
-    void load_points(std::vector<double> data);
+    std::vector<Point> init_centroids(int num_clust, const std::vector<Point> &data);
+    void load_points(const std::vector<double> &y_data, const std::vector<double> &x_data);
     void init_data_points();
     void update_centroids();
     void calc_wsss();
     std::vector<Point>::iterator check_distance(std::vector<Point>::iterator cluster_p,  std::vector<Point>::iterator point_p);
 };
+
+bool sort_points(Point &p1, Point &p2);
 
 #endif /* points_hpp */

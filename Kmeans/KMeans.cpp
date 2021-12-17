@@ -8,17 +8,31 @@
 
 #include "KMeans.hpp"
 
-KMeansResult::KMeansResult() : data{} {
+KMeans_data::KMeans_data() : data{}{}
+
+KMeans_data::KMeans_data(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> raw) : data{raw}{
 }
 
-KMeans::KMeans() : clust{}, min_max{}{}
+KMeans::KMeans() : clust{}{}
 
-KMeans::KMeans(std::map<std::string, std::vector<double>> raw) : clust{}, min_max{}{
+KMeans::KMeans(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> raw) : clust{}{
+    
+    init(raw);
+
+}
+
+KMeans::KMeans(KMeans_data raw) : clust{}{
+    
+    init(raw.data);
+
+}
+
+void KMeans::init(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> &raw){
     std::map<std::string, std::vector<std::shared_ptr<Clusters>>> clusters_cache;
     
     for (auto i : raw){
         clusters_cache.insert(std::pair<std::string,
-                              std::vector<std::shared_ptr<Clusters>>>(i.first, load_clusters(i.second)));
+                                        std::vector<std::shared_ptr<Clusters>>>(i.first, load_clusters(i.second)));
     }
     
     for (auto i : clusters_cache){
@@ -26,7 +40,6 @@ KMeans::KMeans(std::map<std::string, std::vector<double>> raw) : clust{}, min_ma
         clust.insert(std::pair<std::string,
                                std::shared_ptr<Clusters>>(i.first, i.second[opt_clust-1]));
     }
-    
 }
 
 /* * * * * * * * * * * * * * * * * * *
@@ -34,18 +47,21 @@ KMeans::KMeans(std::map<std::string, std::vector<double>> raw) : clust{}, min_ma
  * * * * * * * * * * * * * * * * * * */
 
 
-std::vector<std::shared_ptr<Clusters>> KMeans::load_clusters(std::vector<double> &data){
+std::vector<std::shared_ptr<Clusters>> KMeans::load_clusters(std::pair<std::vector<double>, std::vector<double>> &data){
     std::vector<std::shared_ptr<Clusters>> clusters;
     for (int i = 1; i < 25; i++){
         std::shared_ptr<Clusters> tmp (new Clusters());
-        tmp->init(data, i);
+        tmp->init(data.first, data.second, i);
         clusters.push_back(tmp);
     }
     
     return clusters;
 }
 
-// wss = within sum squares, sum of all the distances to the centroid
+/* * * * * * * * * * * * * * * * * * * * * *
+ *  WSS = Within Sum Squares, sum of all   *
+ *     the distances to the centroid       *
+ * * * * * * * * * * * * * * * * * * * * * */
 unsigned long KMeans::find_optimum_clusters(std::vector<std::shared_ptr<Clusters>> &clusters){
     std::vector<double> delta1, last;
     last.push_back(clusters.front()->wsss);
@@ -72,14 +88,7 @@ unsigned long KMeans::find_optimum_clusters(std::vector<std::shared_ptr<Clusters
         }
     }
     
-    //Needs some form of error handling here
-    return 0;
-}
-
-void KMeans::pair_high_low(Clusters &high, Clusters &low){
-    for (int i = 0; i < low.min_max.size(); i++){
-        this->min_max.push_back({high.min_max[i][0], low.min_max[i][1]});
-    }
+    throw std::runtime_error(std::string("Error determining K Clusters.  Could not determine optimal number of clusters."));
 }
 
 
@@ -111,7 +120,7 @@ std::string KMeans::print_clusters(std::shared_ptr<Clusters> clust){
     for (auto i : clust->points){
         std::stringstream tmp;
         
-        tmp << "[" << i.price << ", " << i.cluster << ", " << i.minDist << "]";
+        tmp << "[" << i.y_data << ", " << i.cluster << ", " << i.minDist << "]";
         tmp << std::setw(str_len - (int)tmp.str().length()) << " ";
         
         row_count++;
@@ -134,7 +143,7 @@ std::string KMeans::print_centroids(std::shared_ptr<Clusters> clust){
     for (auto i : clust->centroid){
         std::stringstream tmp;
         
-        tmp << "[" << i.price << ", " << i.cluster  <<"]";
+        tmp << "[" << i.cluster << ", " << i.y_data  << " " << i.x_data << "]";
         tmp << std::setw(str_len - (int)tmp.str().length()) << " ";
         
         row_count++;
@@ -156,7 +165,7 @@ std::string KMeans::print_min_max(std::vector<std::vector<Point*>> &min_max){
     for (auto i : min_max){
         std::stringstream tmp;
         
-        tmp << "[" << i[0]->price << ", " << i[1]->price << "]";
+        tmp << "[" << i[0]->y_data << ", " << i[1]->y_data << "]";
         tmp << std::setw(str_len - (int)tmp.str().length()) << " ";
         
         row_count++;
@@ -175,7 +184,7 @@ std::string KMeans::print_min_max(std::shared_ptr<Clusters> clust){
     
     ss << "\n[Max/Min] \n";
     for (auto i : clust->min_max){
-        ss << "[" << i[0]->price<< ", " << i[1]->price << "]";
+        ss << "[" << i[0]->y_data<< ", " << i[1]->y_data << "]";
         ss << std::setw(str_len - (int)ss.str().length()) << " ";
     }
     
@@ -202,7 +211,7 @@ std::map<std::string, std::vector<std::vector<std::vector<double>>>> KMeans::fet
 std::vector<std::vector<double>> KMeans::fetch_data(std::vector<Point> &data){
     std::vector<std::vector<double>> ret;
     for(auto i : data){
-        std::vector<double> tmp {i.price, (double)i.cluster, i.minDist};
+        std::vector<double> tmp {i.y_data, (double)i.cluster, i.minDist};
         ret.push_back(tmp);
     }
     return ret;
@@ -211,7 +220,7 @@ std::vector<std::vector<double>> KMeans::fetch_data(std::vector<Point> &data){
 std::vector<std::vector<double>> KMeans::fetch_min_max(std::vector<std::vector<Point*>> &data){
     std::vector<std::vector<double>> ret;
     for (auto i : data)
-        ret.push_back(std::vector<double> {i[0]->price, i[1]->price});
+        ret.push_back(std::vector<double> {i[0]->y_data, i[1]->y_data});
     
     return ret;
 }
