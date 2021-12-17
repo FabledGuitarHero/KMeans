@@ -10,21 +10,16 @@
 
 KMeans_data::KMeans_data() : data{}{}
 
-KMeans_data::KMeans_data(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> raw) : data{raw}{
-}
+KMeans_data::KMeans_data(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> raw) : data{raw}{}
 
 KMeans::KMeans() : clust{}{}
 
 KMeans::KMeans(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> raw) : clust{}{
-    
     init(raw);
-
 }
 
 KMeans::KMeans(KMeans_data raw) : clust{}{
-    
     init(raw.data);
-
 }
 
 void KMeans::init(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> &raw){
@@ -61,18 +56,21 @@ std::vector<std::shared_ptr<Clusters>> KMeans::load_clusters(std::pair<std::vect
 /* * * * * * * * * * * * * * * * * * * * * *
  *  WSS = Within Sum Squares, sum of all   *
  *     the distances to the centroid       *
+ *                                         *
+ *  Uses the Elbow method to determine     *
+ *     the optimal amount of clusters      *
  * * * * * * * * * * * * * * * * * * * * * */
 unsigned long KMeans::find_optimum_clusters(std::vector<std::shared_ptr<Clusters>> &clusters){
     std::vector<double> delta1, last;
-    last.push_back(clusters.front()->wsss);
+    last.push_back(clusters.front()->wss);
     
     for (auto& i : clusters){
         
         if(delta1.size() > 0){
-            double tmp = last.back() - i->wsss;
+            double tmp = last.back() - i->wss;
             
             delta1.push_back(tmp);
-            last.push_back(i->wsss);
+            last.push_back(i->wss);
             
             //ensures only two items are in vector to compare.
             if(delta1.size() > 2 || delta1.front() == 0)
@@ -84,7 +82,7 @@ unsigned long KMeans::find_optimum_clusters(std::vector<std::shared_ptr<Clusters
         }
         else{
             //initializes vector if empty with first wss
-            delta1.push_back(i->wsss);
+            delta1.push_back(i->wss);
         }
     }
     
@@ -101,7 +99,7 @@ std::string KMeans::print(){
     std::stringstream ss;
     
     for (auto& i : this->clust){
-        ss << "Data Source: " << i.first << std::endl;
+        ss << "Data Source: " << i.first << "\n";
         ss << print_clusters(i.second) << "\n";
         ss << print_centroids(i.second) << "\n";
         ss << this->print_min_max(i.second) << "\n\n";
@@ -191,6 +189,9 @@ std::string KMeans::print_min_max(std::shared_ptr<Clusters> clust){
     return ss.str();
 }
 
+/* * * * * * * * * * * * * * * * * * *
+ *     KMeans: Fetch data methods    *
+ * * * * * * * * * * * * * * * * * * */
 
 std::map<std::string, std::vector<std::vector<std::vector<double>>>> KMeans::fetch_results(){
     std::map<std::string, std::vector<std::vector<std::vector<double>>>> ret {};
@@ -211,7 +212,7 @@ std::map<std::string, std::vector<std::vector<std::vector<double>>>> KMeans::fet
 std::vector<std::vector<double>> KMeans::fetch_data(std::vector<Point> &data){
     std::vector<std::vector<double>> ret;
     for(auto i : data){
-        std::vector<double> tmp {i.y_data, (double)i.cluster, i.minDist};
+        std::vector<double> tmp {i.y_data, i.x_data, (double)i.cluster, i.minDist};
         ret.push_back(tmp);
     }
     return ret;

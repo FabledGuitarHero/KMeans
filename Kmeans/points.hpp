@@ -22,7 +22,6 @@ public:
     int cluster;
     
     Point();
-    Point(double y_data);
     Point(double y_data, double x_data);
     ~Point();
     
@@ -34,7 +33,7 @@ public:
     std::vector<Point> points;
     std::vector<Point> centroid;
     std::vector<std::vector<Point*>> min_max;
-    double wsss;
+    double wss;
     
     
     Clusters();
@@ -53,7 +52,7 @@ private:
     void load_points(const std::vector<double> &y_data, const std::vector<double> &x_data);
     void init_data_points();
     void update_centroids();
-    void calc_wsss();
+    void calc_wss();
     std::vector<Point>::iterator check_distance(std::vector<Point>::iterator cluster_p,  std::vector<Point>::iterator point_p);
 };
 

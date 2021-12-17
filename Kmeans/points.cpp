@@ -22,9 +22,8 @@ using json = nlohmann::json;
 
 Point::Point() : y_data(0.0), x_data(0.0), cluster(-1), minDist(__DBL_MAX__){}
 
-Point::Point(double y_data) : y_data(y_data), cluster(-1), minDist(__DBL_MAX__){}
-
-Point::Point(double y_data, double x_data) : y_data(y_data), x_data(x_data), cluster(-1), minDist(__DBL_MAX__){}
+Point::Point(double y_data, double x_data) : y_data(y_data), x_data(x_data), cluster(-1), minDist(__DBL_MAX__){
+}
 
 Point::~Point(){}
 
@@ -50,7 +49,7 @@ Clusters::~Clusters(){}
  *  1) Inialize points from raw data                                     *
  *  2) Establish initial centroids, clusters                             *
  *  3) Load points and sort into established clusters                    *
- *  4) Repeatedly re-sort clusters/points, recalculates centroid to      *
+ *  4) Repeatedly update clusters/points, recalculates centroid to       *
  *        establish accurate centroid point.                             *
  *  5) Calculate within sum squared                                      *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -66,7 +65,7 @@ void Clusters::init(const std::vector<double> y_data, const std::vector<double> 
          update_centroids();
     }
 
-    calc_wsss();
+    calc_wss();
 }
 
 std::vector<Point> Clusters::init_centroids(int num_clust, const std::vector<Point> &data){
@@ -76,10 +75,11 @@ std::vector<Point> Clusters::init_centroids(int num_clust, const std::vector<Poi
     for (unsigned long i = range; i <= data.size()+1;){
         Point p(data[i-1]);
         p.cluster = (int)return_cent.size();
-        //p.minDist = -1.0;
+        p.minDist = -1.0;
         
         return_cent.push_back(p);
-        min_max.push_back(std::vector<Point*>{&p, &p});
+        this->min_max.push_back(std::vector<Point*>{&return_cent[return_cent.size()-1],
+                                                    &return_cent[return_cent.size()-1]});
         
         i += range;
     }
@@ -119,13 +119,13 @@ std::vector<Point>::iterator Clusters::check_distance(std::vector<Point>::iterat
  *     cluster                             *
  * * * * * * * * * * * * * * * * * * * * * */
 
-void Clusters::calc_wsss(){
+void Clusters::calc_wss(){
    double total = 0;
     
     for (auto i : points)
         total += abs(i.minDist);
  
-    wsss = total;
+    this->wss = total;
 }
 
 
@@ -147,10 +147,9 @@ void Clusters::init_data_points(){
          *  (min_max[x][1] is min)               *
          * * * * * * * * * * * * * * * * * * * * */
         Point& pnt = *p;
-        
-        if (p->minDist > min_max[p->cluster][0]->minDist)
+        if (p->minDist > this->min_max[p->cluster][0]->minDist)
             min_max[p->cluster][0] = &pnt;
-        if (p->minDist < min_max[p->cluster][1]->minDist)
+        if (p->minDist < this->min_max[p->cluster][1]->minDist)
             min_max[p->cluster][1] = &pnt;
     }
 

@@ -124,11 +124,11 @@ int main(int argc, const char * argv[]) {
     
     try{
     
-        KMeans_data tmp2 (parse_to_vector(jsn["candles"],
+        KMeans_data tmp (parse_to_vector(jsn["candles"],
                           std::vector<std::string> {"high", "low", "rsi_data/rsi"},
                           std::vector<std::string> {"datetime"}));
     
-        KMeans test(tmp2);
+        KMeans test(tmp);
         std::map<std::string, std::vector<std::vector<std::vector<double>>>> answer = test.fetch_results();
         std::cout << test.print() << std::endl;
             
@@ -138,8 +138,6 @@ int main(int argc, const char * argv[]) {
             proc[i.first]["centroid"] = i.second[1];
             proc[i.first]["min_max"] = i.second[2];
         }
-    
-        //std:cout << proc.dump(4) << std::endl;
         print_file(proc.dump());
         
         
