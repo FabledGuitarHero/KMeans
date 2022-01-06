@@ -88,8 +88,8 @@ std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> parse
 }
 
 void print_file(std::string result){
-    //std::ofstream file("/Volumes/web/KMean/output.txt");
-    std::ofstream file("output.txt");
+    std::ofstream file("/Volumes/web/KMean/output.txt");
+    //std::ofstream file("output.txt");
     if(file.is_open()){
         file << result;
     }
@@ -129,8 +129,7 @@ int main(int argc, const char * argv[]) {
                           std::vector<std::string> {"datetime"}));
     
         KMeans test(tmp);
-        std::map<std::string, std::vector<std::vector<std::vector<double>>>> answer = test.fetch_results();
-        std::cout << test.print() << std::endl;
+        KMeans_proc answer = test.fetch_results();
             
         nlohmann::json proc;
         for (auto i : answer){
@@ -138,9 +137,8 @@ int main(int argc, const char * argv[]) {
             proc[i.first]["centroid"] = i.second[1];
             proc[i.first]["min_max"] = i.second[2];
         }
+        
         print_file(proc.dump());
-        
-        
     }
     catch(std::exception &e){
         std::cout << e.what() << std::endl;

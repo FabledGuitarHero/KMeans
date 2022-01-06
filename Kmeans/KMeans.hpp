@@ -23,6 +23,15 @@ public:
     KMeans_data(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> raw);
 };
 
+struct KMeans_proc{
+public:
+    std::map<std::string, std::vector<std::vector<std::vector<double>>>> data;
+    KMeans_proc(std::map<std::string, std::vector<std::vector<std::vector<double>>>> raw);
+    
+    std::map<std::string, std::vector<std::vector<std::vector<double>>>>::iterator begin();
+    std::map<std::string, std::vector<std::vector<std::vector<double>>>>::iterator end();
+};
+
 class KMeans{
 public:
     std::map<std::string, std::shared_ptr<Clusters>> clust;

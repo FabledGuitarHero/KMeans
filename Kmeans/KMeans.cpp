@@ -8,9 +8,49 @@
 
 #include "KMeans.hpp"
 
+/* * * * * * * * * * * * * * * * * * *
+ *                                   *
+ *   KMeans_data Class Declaration:  *
+ *   Struct used to organize data    *
+ *   uniformly to be classified in   *
+ *         the KMeans class.         *
+ *                                   *
+ * * * * * * * * * * * * * * * * * * */
+
 KMeans_data::KMeans_data() : data{}{}
 
 KMeans_data::KMeans_data(std::map<std::string, std::pair<std::vector<double>, std::vector<double>>> raw) : data{raw}{}
+
+/* * * * * * * * * * * * * * * * * * *
+ *                                   *
+ *   KMeans_proc Class Declaration:  *
+ *  Struct used to return the KMeans *
+ *   processed data to the calling   *
+ *            function.              *
+ *                                   *
+ * * * * * * * * * * * * * * * * * * */
+
+KMeans_proc::KMeans_proc(std::map<std::string, std::vector<std::vector<std::vector<double>>>> raw){
+    /*
+     *  Did not go the unique_ptr route because the calling function KMeans::fetch_data() generates
+     *      and returns the above map, would be needless copy-constructing to place it on the heap.
+     */
+    data = raw;
+}
+
+std::map<std::string, std::vector<std::vector<std::vector<double>>>>::iterator KMeans_proc::begin(){
+    return data.begin();
+}
+
+std::map<std::string, std::vector<std::vector<std::vector<double>>>>::iterator KMeans_proc::end(){
+    return data.end();
+}
+
+/* * * * * * * * * * * * * * * * * * *
+ *                                   *
+ *      KMeans Class Declaration     *
+ *                                   *
+ * * * * * * * * * * * * * * * * * * */
 
 KMeans::KMeans() : clust{}{}
 

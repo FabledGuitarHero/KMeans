@@ -70,6 +70,8 @@ void Clusters::init(const std::vector<double> y_data, const std::vector<double> 
 
 std::vector<Point> Clusters::init_centroids(int num_clust, const std::vector<Point> &data){
     std::vector<Point> return_cent;
+    
+    //Bug: runaway memeory leak if data size is less than the number of clustes. I.E: 12/11 = .1, range becomes 0.
     unsigned long range = data.size() / num_clust;
     
     for (unsigned long i = range; i <= data.size()+1;){
@@ -81,7 +83,7 @@ std::vector<Point> Clusters::init_centroids(int num_clust, const std::vector<Poi
         this->min_max.push_back(std::vector<Point*>{&return_cent[return_cent.size()-1],
                                                     &return_cent[return_cent.size()-1]});
         
-        i += range;
+        i += range;  // Bug if range = 0, it will never incriment.
     }
     
     return return_cent;
